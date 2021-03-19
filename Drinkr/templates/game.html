@@ -27,7 +27,7 @@
                 });
 
                 updateGameData(msg);
-                updateRollData(msg['roll']);
+                updateRollData(msg['roll'], true);
             });
             
             // When somebody has rolled
@@ -37,16 +37,24 @@
 
             // When submitting the form to join or host a game room, a web socket must be emitted to update the server
             $('form#rollDice').submit(function(event) {
+                // Prevent multiple submissions
+                $("#rollDiceSubmit").attr('disabled','disabled');
+                
+                // Send off the request for the server to roll the dice
                 socket.emit('request_roll_data', {
                     'room_key': sessionStorage['room_key'],
                     'rolling_id': sessionStorage['drinkr_id'],
                 });
+                
                 return false;
             });
 
             socket.emit('request_game_data', {
                 'room_key': sessionStorage['room_key'],
             });
+
+            console.log("START");
+            addTile({id:"tile_1", name:"tileName", left:"100", top:"100"})
         });
 
         window.onbeforeunload = function(){
@@ -62,7 +70,7 @@
             updatePlayers(msg['players']);
         }
 
-        function updateRollData(turn) {
+        function updateRollData(turn, isInnit = false) {
             player_count = Object.keys(players).length;
             sequence = turn['current_turn'] % player_count;
             current = currentPlayer(sequence);
@@ -80,6 +88,7 @@
                 showRoll(username, rollValue);
                 showPlayerPositions();
             }
+            showRollForm(current, isInnit ? 0 : 1000);
         }
 
         function updatePlayers(playerList) {
@@ -90,6 +99,7 @@
                 addPlayer(element['id'], element['username'], element['is_host'], false, element['id'] == sessionStorage['drinkr_id']);
             });
         }
+        
         function addPlayer(id, username, isHost, isActive, isSelf) {
             classes = "";
             classes += isHost == 1 ? "host" : "";
@@ -112,11 +122,21 @@
                 $("#player_" + p).removeClass("active");
             }
             $("#player_" + player).addClass("active");
+        }
 
-            if (player != sessionStorage['drinkr_id']) {
-                $('#rollDicePopup').addClass("hidden");
+        function showRollForm(player, delay = 1000) {
+            // If the player is the new roller, show them the popup box
+            if (player == sessionStorage['drinkr_id']) {
+                $("#rollDiceSubmit").removeAttr('disabled');
+                $('#roll-value').text("");
+                $('#rollDicePopup').animate({
+                    top: '50%',
+                }, 500);
             } else {
-                $('#rollDicePopup').removeClass("hidden");
+                // if they are not the roller, Slide the popup off screen in case they were the previous roller (after a short delay to read the contents)
+                $('#rollDicePopup').delay(delay).animate({
+                    top: '-100%',
+                }, 500);
             }
         }
 
@@ -132,6 +152,19 @@
             }
             return null;
         }
+
+        function generateTile(id, name, left, top) {
+            return '<div class="tile" style="' + 
+                "left:" + left + "px;" + 
+                "top:" + top + "px;" + 
+            '"><h1>' + name + '</h1></div>'
+        }
+
+        function addTile(tile) {
+            console.log(tile);
+            console.log(generateTile(tile.id, tile.name, tile.left, tile.top));
+            $("#GameBoard").append(generateTile(tile.id, tile.name, tile.left, tile.top));
+        }
     </script>
 </head>
 <body>
@@ -141,12 +174,12 @@
                 <form id="rollDice" method="POST" action='#'>
                     <center><label>Your turn to roll!</label></center>
                     <center><h1 id="roll-value"></h1></center>
-                    <input type="submit" value="submit" style="position: absolute; bottom: 5px; left: 50%; transform: translate(-50%, 0%);">
+                    <input id="rollDiceSubmit" type="submit" value="submit" style="position: absolute; bottom: 5px; left: 50%; transform: translate(-50%, 0%);">
                 </form>
             </div>
 
 
-            
+
 
 
             <div id="last-roll">
