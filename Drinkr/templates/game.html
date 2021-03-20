@@ -5,57 +5,15 @@
     <title>{{title}}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+
+    <script src="{{url_for('static', filename='scripts/gameEvents.js') }}"></script>
+    <script src="{{url_for('static', filename='scripts/utilities.js') }}"></script>
+    <script src="{{url_for('static', filename='scripts/gameUI.js') }}"></script>
+
     <link rel="stylesheet" href="{{url_for('static', filename='content/site.css') }}">
+
     <script type="text/javascript" charset="utf-8">
-        var socket;
         var players = {};
-
-        $(document).ready(function() {
-            // Connect to the Socket.IO server.
-            socket = io();
-            
-            // When told to redirect by the server: do it
-            socket.on('redirect', function (msg, cb) {
-                window.location = msg['url'];
-            });
-            
-            // When somebody joins / leaves
-            socket.on('receive_game_data', function(msg, cb) {
-                players = {};
-                msg['players'].forEach(player => {
-                    players[player.id] = player;
-                });
-
-                updateGameData(msg);
-                updateRollData(msg['roll'], true);
-            });
-            
-            // When somebody has rolled
-            socket.on('receive_roll_data', function(msg, cb) {
-                updateRollData(msg['roll']);
-            });
-
-            // When submitting the form to join or host a game room, a web socket must be emitted to update the server
-            $('form#rollDice').submit(function(event) {
-                // Prevent multiple submissions
-                $("#rollDiceSubmit").attr('disabled','disabled');
-                
-                // Send off the request for the server to roll the dice
-                socket.emit('request_roll_data', {
-                    'room_key': sessionStorage['room_key'],
-                    'rolling_id': sessionStorage['drinkr_id'],
-                });
-                
-                return false;
-            });
-
-            socket.emit('request_game_data', {
-                'room_key': sessionStorage['room_key'],
-            });
-
-            console.log("START");
-            addTile({id:"tile_1", name:"tileName", left:"100", top:"100"})
-        });
 
         window.onbeforeunload = function(){
             console.log("leaving");
@@ -65,106 +23,6 @@
             });
         };
 
-        function updateGameData(msg) {
-            $('#room_key').text(msg['room_key']);
-            updatePlayers(msg['players']);
-        }
-
-        function updateRollData(turn, isInnit = false) {
-            player_count = Object.keys(players).length;
-            sequence = turn['current_turn'] % player_count;
-            current = currentPlayer(sequence);
-            showCurrentPlayer(current);
-
-            if (turn['last_roller'] != "") {
-                rollValue = turn['last_roll'];
-
-                username = "[[Quitter]]";
-                if (turn['last_roller'] in players) {
-                    username = players[turn['last_roller']].username;
-                    players[turn['last_roller']].current_tile += turn[username];
-                }
-
-                showRoll(username, rollValue);
-                showPlayerPositions();
-            }
-            showRollForm(current, isInnit ? 0 : 1000);
-        }
-
-        function updatePlayers(playerList) {
-            $('#PlayerList').empty();
-            console.log(playerList);
-            console.log(sessionStorage['drinkr_id']);
-            playerList.forEach(element => {
-                addPlayer(element['id'], element['username'], element['is_host'], false, element['id'] == sessionStorage['drinkr_id']);
-            });
-        }
-        
-        function addPlayer(id, username, isHost, isActive, isSelf) {
-            classes = "";
-            classes += isHost == 1 ? "host" : "";
-            classes += isActive == 1 ? " active" : "";
-            classes += isSelf == 1 ? " self" : "";
-
-            host_icon = isHost == 1 ? "<img class='host-icon'> </img>" : "";
-
-            $('#PlayerList').append("<li class='" + classes + "' id='player_" + id + "'>" + username + " " + host_icon + "</li>");
-        }
-
-        function showRoll(roller, val) {
-            $('#roller').text(roller);
-            $('#roll-value').text(val);
-            $('#last-roll-value').text(val);
-        }
-
-        function showCurrentPlayer(player) {
-            for (p in players) { 
-                $("#player_" + p).removeClass("active");
-            }
-            $("#player_" + player).addClass("active");
-        }
-
-        function showRollForm(player, delay = 1000) {
-            // If the player is the new roller, show them the popup box
-            if (player == sessionStorage['drinkr_id']) {
-                $("#rollDiceSubmit").removeAttr('disabled');
-                $('#roll-value').text("");
-                $('#rollDicePopup').animate({
-                    top: '50%',
-                }, 500);
-            } else {
-                // if they are not the roller, Slide the popup off screen in case they were the previous roller (after a short delay to read the contents)
-                $('#rollDicePopup').delay(delay).animate({
-                    top: '-100%',
-                }, 500);
-            }
-        }
-
-        function showPlayerPositions() {
-
-        }
-
-        function currentPlayer(sequence) {
-            for (p in players) { 
-                if (players[p].sequence == sequence) {
-                    return p;
-                }
-            }
-            return null;
-        }
-
-        function generateTile(id, name, left, top) {
-            return '<div class="tile" style="' + 
-                "left:" + left + "px;" + 
-                "top:" + top + "px;" + 
-            '"><h1>' + name + '</h1></div>'
-        }
-
-        function addTile(tile) {
-            console.log(tile);
-            console.log(generateTile(tile.id, tile.name, tile.left, tile.top));
-            $("#GameBoard").append(generateTile(tile.id, tile.name, tile.left, tile.top));
-        }
     </script>
 </head>
 <body>
@@ -207,5 +65,11 @@
             </div>
         </div>
     </div>
+
+    <template id="tileTemplate">
+        <div id="tile" class="tile">
+            <h4 id="tileName" class="tileTitle">Name</h4>
+        </div>
+    </template>
 </body>
 </html>

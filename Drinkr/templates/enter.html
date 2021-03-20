@@ -29,7 +29,7 @@
             $('form#join').submit(function(event) {
                 var inputs = {
                     'username': $("#join_username").val(),
-                    'room_key': $("#join_room_key").val(),
+                    'room_key': $("#join_room_key").val().toUpperCase(),
                     'password': $("#join_room_pass").val(),
                 };
                 socket.emit('join', inputs);
@@ -102,7 +102,7 @@
 
                     <div class="form-input">
                         <label>Room key</label>
-                        <input type="text" name="join_room_key" id="join_room_key" placeholder="ABC123">
+                        <input type="text" name="join_room_key" id="join_room_key" placeholder="ABC123" style="text-transform: uppercase;" autocomplete="off">
                     </div>
 
                     <div class="form-input">

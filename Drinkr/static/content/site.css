@@ -185,8 +185,14 @@ li.active {
 
 .tile {
     position: absolute;
-    width: 100px;
-    height: 200px;
     border: 1px solid #567fbd;
     border-radius: 5px;
+}
+
+.tileTitle {
+    position: inherit;
+    bottom: 0px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
 }

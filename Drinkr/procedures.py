@@ -2,7 +2,7 @@
 from datetime import datetime
 
 def room_u(room_name, password):
-    return f"INSERT INTO rooms (id,dateModified,password) VALUES ('{str(room_name)}', '{str(datetime.today())}', '{str(password)}'); "
+    return f"INSERT INTO rooms (id,dateModified,password) VALUES ('{str(room_name)}', '{str(datetime.today())}', '{str(password)}');"
 
 def room_f(room_name):
     return f"SELECT * FROM rooms WHERE id = '{room_name}';"
@@ -40,3 +40,11 @@ def turn_iter(room_name, last_roller, last_roll):
 
 def turn_f(room_name):
     return f"SELECT * FROM turns WHERE room_id = '{room_name}';"
+
+
+
+def tile_f():
+    return f"SELECT * FROM tiles;"
+
+def tile_f_by_id(id):
+    return f"SELECT * FROM tiles WHERE id = '{id}';"

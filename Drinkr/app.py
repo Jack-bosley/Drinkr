@@ -12,8 +12,9 @@ DATABASE = 'rooms.db'
 from text import *
 from utilities import MAX_ATTEMPTS, random_room_key, isNoneOrEmptyOrSpace, random_roll
 from procedures import room_u, room_f, room_d, \
-    player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, \
-    turn_u, turn_f, turn_iter
+        player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, \
+        turn_u, turn_f, turn_iter, \
+        tile_f, tile_f_by_id
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -194,13 +195,15 @@ def host(message):
 def request_game_data(message):
     room_key = message['room_key']
     join_room(room_key)
+    board_data = query_db(tile_f())
 
     # Get players in room, and the last roll
     players = query_db(player_f_by_room(room_key))
     turn = query_db(turn_f(room_key), one=True)
     emit('receive_game_data', {'room_key': room_key,
                                'players': players, 
-                               'roll': turn}, room=room_key)
+                               'roll': turn, 
+                               'board_data': board_data}, room=room_key)
 
 
 @socketio.event
