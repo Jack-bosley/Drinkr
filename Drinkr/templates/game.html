@@ -9,19 +9,13 @@
     <script src="{{url_for('static', filename='scripts/gameEvents.js') }}"></script>
     <script src="{{url_for('static', filename='scripts/utilities.js') }}"></script>
     <script src="{{url_for('static', filename='scripts/gameUI.js') }}"></script>
+    <script src="{{url_for('static', filename='scripts/uiTemplates.js') }}"></script>
 
     <link rel="stylesheet" href="{{url_for('static', filename='content/site.css') }}">
 
     <script type="text/javascript" charset="utf-8">
         var players = {};
 
-        window.onbeforeunload = function(){
-            console.log("leaving");
-            socket.emit('leave', {
-                'room_key': sessionStorage['room_key'],
-                'leaving_id': sessionStorage['drinkr_id'],
-            });
-        };
 
     </script>
 </head>
@@ -37,7 +31,9 @@
             </div>
 
 
+            <div id="tiles">
 
+            </div>
 
 
             <div id="last-roll">
@@ -54,8 +50,8 @@
             </div>
             <div id="Players" class="side-panel">
                 <h4>Player list</h4>
-                <ul id="PlayerList">
-                </ul>
+                <div id="PlayerList">
+                </div>
             </div>
             <div id="ActiveRules" class="side-panel">
                 <h4>Active Rules</h4>
@@ -68,7 +64,18 @@
 
     <template id="tileTemplate">
         <div id="tile" class="tile">
-            <h4 id="tileName" class="tileTitle">Name</h4>
+            <h4 id="tileName" class="tileTitle">
+
+            </h4>
+        </div>
+    </template>
+
+    <template id="playerListTemplate">
+        <div id="playerListItem">
+            
+            <div id="kickIcon">
+                <img class='kick-icon'> </img>
+            </div>
         </div>
     </template>
 </body>

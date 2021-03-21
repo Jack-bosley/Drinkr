@@ -1,4 +1,7 @@
 
+var tileWidth = 100;
+var tileHeight = 80;
+
 function updateGameData(msg) {
     $('#room_key').text(msg['room_key']);
     updatePlayersList(msg['players']);
@@ -8,22 +11,20 @@ function updateGameData(msg) {
 function updatePlayersList(playerList) {
     $('#PlayerList').empty();
     
+    console.log(playerList);
     playerList.forEach(element => {
         addPlayer(element['id'], element['username'], element['is_host'], false, element['id'] == sessionStorage['drinkr_id']);
     });
 }
 
 function addPlayer(id, username, isHost, isActive, isSelf) {
-    classes = "";
-    classes += isHost == 1 ? "host" : "";
-    classes += isActive == 1 ? " active" : "";
-    classes += isSelf == 1 ? " self" : "";
-
-    host_icon = isHost == 1 ? "<img class='host-icon'> </img>" : "";
-
-    $('#PlayerList').append("<li class='" + classes + "' id='player_" + id + "'>" + username + " " + host_icon + "</li>");
+    canKick = isSelfHost();
+    $('#PlayerList').append(generatePlayer("player_" + id, username, isHost, isActive, isSelf, canKick));
 }
 
+function kickPlayer(data) {
+    console.log(kickPlayer);
+}
 
 function updateRollData(turn, isInnit = false) {
     player_count = Object.keys(players).length;
@@ -48,9 +49,9 @@ function updateRollData(turn, isInnit = false) {
 
 function showCurrentPlayer(player) {
     for (p in players) { 
-        $("#player_" + p).removeClass("active");
+        $("#player_" + p).removeClass("player-active");
     }
-    $("#player_" + player).addClass("active");
+    $("#player_" + player).addClass("player-active");
 }
 
 function showRoll(roller, val) {
@@ -81,25 +82,21 @@ function showRollForm(player, delay = 1000) {
 
 
 
-function updateBoardData(boardData) {
-    console.log(boardData);
-}
+function updateBoardData(tileMapping, boardData, tileData) {
+    $("#tiles").empty();
+    
+    map = parseTileMapping(tileMapping);
+    boardData.forEach(function (element) {
+        tile_id = map[element.sequence];
+        tile = tileData.find(x => x.id == tile_id);
 
-function generateTile(id, name, left, top, width, height) {
-    tile = $(document.getElementById('tileTemplate').content.cloneNode(true)).contents();
-    console.log(tile.id);
-    tile.attr("id", id);
-    console.log(tile.id);
+        tileLeft = (tileWidth * (element.pos_x + 1)) + "px";
+        tileTop = (tileHeight * (element.pos_y + 1)) + "px";
 
-    tile.css("left", left);
-    tile.css("top", top);
-    tile.css("width", width);
-    tile.css("height", height);
-    tile.find("#tileName").text(name);
-
-    return tile;
+        addTile({id:"tile_" + element.sequence, name:tile.name, left:tileLeft, top:tileTop, width:tileWidth + "px", height:tileHeight + "px"})
+    });
 }
 
 function addTile(tile) {
-    $("#GameBoard").append(generateTile(tile.id, tile.name, tile.left, tile.top, tile.width, tile.height));
+    $("#tiles").append(generateTile(tile.id, tile.name, tile.left, tile.top, tile.width, tile.height));
 }

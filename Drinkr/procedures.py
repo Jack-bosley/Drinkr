@@ -1,14 +1,17 @@
 
 from datetime import datetime
 
-def room_u(room_name, password):
-    return f"INSERT INTO rooms (id,dateModified,password) VALUES ('{str(room_name)}', '{str(datetime.today())}', '{str(password)}');"
+def room_u(room_name, password, tile_sequence):
+    return f"INSERT INTO rooms (id,dateModified,password,tile_sequence) VALUES ('{str(room_name)}', '{str(datetime.today())}', '{str(password)}', '{tile_sequence}');"
 
 def room_f(room_name):
     return f"SELECT * FROM rooms WHERE id = '{room_name}';"
 
 def room_d(room_name):
     return f"DELETE FROM rooms WHERE id = '{room_name}';"
+
+def room_f_tile_seq(room_name):
+    return f"SELECT tile_sequence FROM rooms where id = '{room_name}'"
 
 
 
@@ -30,6 +33,13 @@ def player_d(id):
 def player_f_sequence_by_room(room_name):
     return f"SELECT max(sequence) + 1 AS next_seq FROM players WHERE room_id = '{room_name}';"
 
+def player_f_room(id):
+    return f"SELECT room_id FROM players WHERE id = '{id}';"
+
+def player_u_seq(id, new_sequence):
+    return f"UPDATE players SET sequence = {new_sequence} WHERE id = '{id}';"
+
+
 
 
 def turn_u(room_name, last_roller, last_roll, current_turn):
@@ -48,3 +58,11 @@ def tile_f():
 
 def tile_f_by_id(id):
     return f"SELECT * FROM tiles WHERE id = '{id}';"
+
+def tile_f_by_set(tile_set):
+    return f"SELECT * FROM tiles WHERE tile_set = '{tile_set}'"
+
+
+
+def board_f():
+    return f"SELECT * FROM board;"

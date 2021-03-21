@@ -10,11 +10,12 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, close_room, ro
 DATABASE = 'rooms.db'
 
 from text import *
-from utilities import MAX_ATTEMPTS, random_room_key, isNoneOrEmptyOrSpace, random_roll
-from procedures import room_u, room_f, room_d, \
-        player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, \
+from utilities import MAX_ATTEMPTS, random_room_key, isNoneOrEmptyOrSpace, random_roll, generate_tile_sequence, Tiles
+from procedures import room_u, room_f, room_d, room_f_tile_seq, \
+        player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, player_f_room, player_u_seq, \
         turn_u, turn_f, turn_iter, \
-        tile_f, tile_f_by_id
+        tile_f, tile_f_by_id, tile_f_by_set, \
+        board_f
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -133,7 +134,7 @@ def join(message):
     join_room(room_key)
 
     next_seq = query_db(player_f_sequence_by_room(room_key), one=True)['next_seq']
-    player_id = str(uuid.uuid4())
+    player_id = request.sid
 
     query_db(player_u(player_id, room_key, message['username'], False, next_seq))
     players = query_db(player_f_by_room(room_key))
@@ -148,7 +149,6 @@ def join(message):
 
 @socketio.event
 def host(message):
-    print(str(message['username']) + ", " + str(isNoneOrEmptyOrSpace(message['username'])))
     # Check username is input
     if isNoneOrEmptyOrSpace(message['username']):
         emit('room_join_response', {'success': False,
@@ -174,11 +174,15 @@ def host(message):
     # If empty room found, join the room and clear out any old players in case some remain
     join_room(room_key)
 
-    query_db(room_u(room_key, message['password']))
+    tiles = query_db(tile_f())
+    board = query_db(board_f())
+    tile_sequence = generate_tile_sequence(tiles, board)
+
+    query_db(room_u(room_key, message['password'], tile_sequence))
     query_db(turn_u(room_key, "", 0, 0))
     query_db(player_d_by_room(room_key))
 
-    player_id = str(uuid.uuid4())
+    player_id = request.sid
 
     query_db(player_u(player_id, room_key, message['username'], True, 0))
     players = query_db(player_f_by_room(room_key))
@@ -195,14 +199,18 @@ def host(message):
 def request_game_data(message):
     room_key = message['room_key']
     join_room(room_key)
-    board_data = query_db(tile_f())
+    tile_data = query_db(tile_f())
+    board_data = query_db(board_f())
 
     # Get players in room, and the last roll
     players = query_db(player_f_by_room(room_key))
     turn = query_db(turn_f(room_key), one=True)
+    tile_mapping = query_db(room_f_tile_seq(room_key))
     emit('receive_game_data', {'room_key': room_key,
                                'players': players, 
                                'roll': turn, 
+                               'tile_mapping': tile_mapping,
+                               'tile_data': tile_data,
                                'board_data': board_data}, room=room_key)
 
 
@@ -226,66 +234,24 @@ def request_roll_data(message):
 @socketio.event
 def leave(message):
     room_key = message['room_key']
-    leave_room(room_key)
 
     # Delete the player from the database + send new information about the current players and turn to all who are left
     query_db(player_d(message['leaving_id']))
     players = query_db(player_f_by_room(room_key))
+    for i, p in enumerate(players):
+        query_db(player_u_seq(p['id'], i))
+        p['sequence'] = i
+
     turn = query_db(turn_f(room_key), one=True)
     if len(players) == 0:
         close_room(room_key)
         query_db(room_d(room_key))
     else:
+        print(room_key)
         emit('receive_game_data', {'room_key': room_key,
                                    'players': players,
-                                   'roll': turn}, room=room_key)
-
-
-
-
-@socketio.on('close_room')
-def on_close_room(message):
-    emit('my_response', {'data': 'Room ' + message['room'] + ' is closing.',
-                         'count': session['receive_count']},
-         to=message['room'])
-    close_room(message['room'])
-
-@socketio.event
-def my_room_event(message):
-    emit('my_response',
-         {'data': message['data'], 'count': session['receive_count']},
-         to=message['room'])
-
-@socketio.event
-def disconnect_request():
-    @copy_current_request_context
-    def can_disconnect():
-        disconnect()
-
-    # for this emit we use a callback function
-    # when the callback function is invoked we know that the message has been
-    # received and it is safe to disconnect
-    emit('my_response',
-         {'data': 'Disconnected!', 'count': session['receive_count']},
-         callback=can_disconnect)
-
-@socketio.event
-def my_ping():
-    emit('my_pong')
-
-@socketio.event
-def connect():
-    global thread
-    with thread_lock:
-        if thread is None:
-            thread = socketio.start_background_task(background_thread)
-    emit('my_response', {'data': 'Connected', 'count': 0})
-
-@socketio.on('disconnect')
-def test_disconnect():
-    print('Client disconnected', request.sid)
-
-
+                                   'roll': turn, 
+                                   'redirect': url_for('join')}, room=room_key)
 
 
 if __name__ == '__main__':

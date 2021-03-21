@@ -10,6 +10,10 @@ $(document).ready(function() {
         window.location = msg['url'];
     });
     
+    socket.on('ping', function (msg, cb) {
+        socket.emit('pong', 'pong_user', sessionStorage['drinkr_id']);
+    })
+
     // When somebody joins / leaves
     socket.on('receive_game_data', function(msg, cb) {
         players = {};
@@ -17,8 +21,14 @@ $(document).ready(function() {
             players[player.id] = player;
         });
 
-        updateGameData(msg);
-        updateBoardData(msg['board_data']);
+        if (sessionStorage['drinkr_id'] in players) {
+            updateGameData(msg);
+
+            if (msg['board_data'] != null)
+                updateBoardData(msg['tile_mapping'][0].tile_sequence, msg['board_data'], msg['tile_data']);
+        } else {
+            window.location = msg['redirect'];
+        }
     });
     
     // When somebody has rolled
@@ -40,10 +50,17 @@ $(document).ready(function() {
         return false;
     });
 
+
     socket.emit('request_game_data', {
         'room_key': sessionStorage['room_key'],
     });
 
     console.log("START");
-    addTile({id:"tile_1", name:"Drink", left:"100px", top:"100px", width:"100px", height:"150px"})
 });
+
+function kickRequest(data) {
+    socket.emit('leave', {
+        'room_key': sessionStorage['room_key'],
+        'leaving_id': data.id.split("player_")[1],
+    });
+}
