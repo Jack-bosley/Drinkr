@@ -44,6 +44,13 @@ def player_u_seq(id, new_sequence):
 def playerDetails_u(id, icon, age, gender):
     return f"INSERT INTO playerDetails (id,icon,age,gender) VALUES ('{id}', '{icon}', '{age}', '{gender}')"
 
+def playerDetails_f(id):
+    return f"SELECT * FROM playerDetails WHERE id = '{id}';"
+
+def playerDetails_f_by_room(room_name):
+    return f"SELECT pd.id, pd.icon, pd.age, pd.gender FROM players p JOIN playerDetails pd ON pd.id == p.id WHERE p.room_id = '{room_name}';"
+
+
 
 def turn_u(room_name, last_roller, last_roll, current_turn):
     return f"INSERT INTO turns (room_id,last_roller,last_roll,current_turn) VALUES ('{room_name}','{last_roller}','{last_roll}','{current_turn}');"

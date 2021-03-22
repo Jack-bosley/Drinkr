@@ -13,6 +13,7 @@ from text import *
 from utilities import MAX_ATTEMPTS, random_room_key, isNoneOrEmptyOrSpace, random_roll, generate_tile_sequence, Tiles
 from procedures import room_u, room_f, room_d, room_f_tile_seq, \
         player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, player_f_room, player_u_seq, \
+        playerDetails_u, playerDetails_f, playerDetails_f_by_room, \
         turn_u, turn_f, turn_iter, \
         tile_f, tile_f_by_id, tile_f_by_set, \
         board_f
@@ -196,8 +197,22 @@ def host(message):
 
 
 @socketio.event
+def send_player_details(message):
+    room_key = message['room_key']
+    player_id = message['id']
+    player_icon = message['icon']
+
+    query_db(playerDetails_u(player_id, player_icon, 0, 'U'))
+    everyone_pd = query_db(playerDetails_f_by_room(room_key))
+
+    emit('receive_player_details_confirmation', {'everyone_personal_data': everyone_pd}, room=room_key)
+
+
+
+@socketio.event
 def request_game_data(message):
     room_key = message['room_key']
+    player_id = message['player_id']
     join_room(room_key)
     tile_data = query_db(tile_f())
     board_data = query_db(board_f())
@@ -206,12 +221,17 @@ def request_game_data(message):
     players = query_db(player_f_by_room(room_key))
     turn = query_db(turn_f(room_key), one=True)
     tile_mapping = query_db(room_f_tile_seq(room_key))
+    personal_data = query_db(playerDetails_f(player_id))
+    everyone_pd = query_db(playerDetails_f_by_room(room_key))
+
     emit('receive_game_data', {'room_key': room_key,
                                'players': players, 
                                'roll': turn, 
                                'tile_mapping': tile_mapping,
                                'tile_data': tile_data,
-                               'board_data': board_data}, room=room_key)
+                               'board_data': board_data, 
+                               'personal_data': personal_data,
+                               'everyone_personal_data': everyone_pd}, room=room_key)
 
 
 @socketio.event

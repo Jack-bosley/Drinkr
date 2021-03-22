@@ -12,17 +12,31 @@
     <script src="{{url_for('static', filename='scripts/uiTemplates.js') }}"></script>
 
     <link rel="stylesheet" href="{{url_for('static', filename='content/site.css') }}">
-
-    <script type="text/javascript" charset="utf-8">
-        var players = {};
-
-
-    </script>
 </head>
 <body>
     <div id="layout">
         <div id="GameBoard">
-            <div id="rollDicePopup" class="popup">
+            <div id="personalDetailsPopup" class="popup hidden" style="z-index: 10;">
+                <form id="personalDetails" method="POST" action='#'>
+                    <center><label>Tell us a bit about you</label></center>
+                    
+                    <div class="form-input">
+                        <label>Choose your icon</label>
+
+                        <div id="icon-select-area">
+                            <img class="icon-select" src="../static/images/icons/tequila.png" alt="tequila" onclick="selectIcon(this)"/>
+                            <img class="icon-select" src="../static/images/icons/music.png" alt="music" onclick="selectIcon(this)"/>
+                            <img class="icon-select" src="../static/images/icons/beer.png" alt="beer" onclick="selectIcon(this)"/>
+                        </div>
+                    </div>
+
+
+                    <input id="personalDetailsSubmit" type="submit" value="submit" style="position: absolute; bottom: 5px; left: 50%; transform: translate(-50%, 0%);">
+                </form>
+            </div>
+
+
+            <div id="rollDicePopup" class="popup hidden">
                 <form id="rollDice" method="POST" action='#'>
                     <center><label>Your turn to roll!</label></center>
                     <center><h1 id="roll-value"></h1></center>

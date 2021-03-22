@@ -80,6 +80,17 @@ function showRollForm(player, delay = 1000) {
     }
 }
 
+function togglePersonalDetailsForm(personalData) {
+    is_initial = personalData.length == 0;
+
+    if (is_initial) {
+        $('#personalDetailsPopup').removeClass("hidden");
+        $('#rollDicePopup').addClass("hidden");
+    } else {
+        $('#personalDetailsPopup').addClass("hidden");
+        $('#rollDicePopup').removeClass("hidden");
+    }
+}
 
 
 function updateBoardData(tileMapping, boardData, tileData) {
