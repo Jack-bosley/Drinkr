@@ -41,6 +41,9 @@ def player_u_seq(id, new_sequence):
 
 
 
+def playerDetails_u(id, icon, age, gender):
+    return f"INSERT INTO playerDetails (id,icon,age,gender) VALUES ('{id}', '{icon}', '{age}', '{gender}')"
+
 
 def turn_u(room_name, last_roller, last_roll, current_turn):
     return f"INSERT INTO turns (room_id,last_roller,last_roll,current_turn) VALUES ('{room_name}','{last_roller}','{last_roll}','{current_turn}');"

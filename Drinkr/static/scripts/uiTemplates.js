@@ -37,7 +37,7 @@ function generatePlayer(id, name, isHost, isActive, isSelf, canKick) {
 
 
     if (canKick && !isSelf) {
-        player.find("#kickIcon").attr("onClick", 'kickRequest(' + id + ')');
+        player.find("#kickIcon").attr("onClick", 'kickRequest("' + id + '")');
     } else {
         player.find("#kickIcon").remove();
     }

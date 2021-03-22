@@ -21,6 +21,8 @@ $(document).ready(function() {
             players[player.id] = player;
         });
 
+        console.log(players);
+
         if (sessionStorage['drinkr_id'] in players) {
             updateGameData(msg);
 
@@ -61,6 +63,6 @@ $(document).ready(function() {
 function kickRequest(data) {
     socket.emit('leave', {
         'room_key': sessionStorage['room_key'],
-        'leaving_id': data.id.split("player_")[1],
+        'leaving_id': data.replace("player_", ""),
     });
 }
