@@ -6,10 +6,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
 
-    <script src="{{url_for('static', filename='scripts/gameEvents.js') }}"></script>
     <script src="{{url_for('static', filename='scripts/utilities.js') }}"></script>
     <script src="{{url_for('static', filename='scripts/gameUI.js') }}"></script>
     <script src="{{url_for('static', filename='scripts/uiTemplates.js') }}"></script>
+    <script src="{{url_for('static', filename='scripts/gameEvents.js') }}"></script>
 
     <link rel="stylesheet" href="{{url_for('static', filename='content/site.css') }}">
 </head>
@@ -18,11 +18,9 @@
         <div id="GameBoard">
             <div id="personalDetailsPopup" class="popup hidden" style="z-index: 10;">
                 <form id="personalDetails" method="POST" action='#'>
-                    <center><label>Tell us a bit about you</label></center>
+                    <center><label>Choose your icon</label></center>
                     
                     <div class="form-input">
-                        <label>Choose your icon</label>
-
                         <div id="icon-select-area">
                             <img class="icon-select" src="../static/images/icons/tequila.png" alt="tequila" onclick="selectIcon(this)"/>
                             <img class="icon-select" src="../static/images/icons/music.png" alt="music" onclick="selectIcon(this)"/>
@@ -49,6 +47,9 @@
 
             </div>
 
+            <div id="playerMarkers">
+
+            </div>
 
             <div id="last-roll">
                 <center><label id="roller"></label></center>
@@ -78,18 +79,25 @@
 
     <template id="tileTemplate">
         <div id="tile" class="tile">
-            <h4 id="tileName" class="tileTitle">
+            <p id="tileName" class="tileTitle">
 
-            </h4>
+            </p>
         </div>
     </template>
 
     <template id="playerListTemplate">
-        <div id="playerListItem">
-            
-            <div id="kickIcon">
-                <img class='kick-icon'> </img>
+        <div id="playerListItem" class="player-list-item">
+            <div class="player-details">
+                <img class='player-icon'></img>
+                <div id="playerName"></div>
             </div>
+            <img class='kick-icon'> </img>
+        </div>
+    </template>
+
+    <template id="playerMarkerTemplate">
+        <div id="playerMarker" class="player-marker">
+            <img class='player-icon'></img>
         </div>
     </template>
 </body>

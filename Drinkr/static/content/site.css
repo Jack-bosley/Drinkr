@@ -146,10 +146,35 @@ input[type="radio"]:checked + label{
     margin: 0px;
     padding: 0px;
 }
+#playerMarkers {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+
+    width: 100%;
+    height: 100%;
+
+    margin: 0px;
+    padding: 0px;
+
+    z-index: 5;
+}
 
 .side-panel {
     padding: 5px 5px;
     border-bottom: 1px solid #567fbd;
+}
+
+
+
+.player-list-item {
+    display: inline-flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.player-details {
+    display: inline-flex;
 }
 
 .host-icon {
@@ -158,7 +183,6 @@ input[type="radio"]:checked + label{
     height: 24px;
     vertical-align: bottom;
 }
-
 .kick-icon {
     content: url('../images/kick.png');
     width: 24px;
@@ -167,6 +191,14 @@ input[type="radio"]:checked + label{
     vertical-align: bottom;
     cursor: pointer;
 }
+.player-icon {
+    width: 24px;
+    height: 24px;
+    float: left;
+    vertical-align: bottom;
+    margin-right: 5px;
+}
+
 
 #Metadata {
     display: flex;
@@ -203,15 +235,21 @@ input[type="radio"]:checked + label{
 .tile {
     position: absolute;
     border: 1px solid #567fbd;
-    border-radius: 5px;
 }
 
 .tileTitle {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
     position: inherit;
     bottom: 0px;
     width: 100%;
     text-align: center;
-    margin: 5px 0px;
+    margin: 0px;
+}
+.tileVerticalCenter {
+    justify-content: center;
 }
 
 #tiles {
@@ -245,4 +283,8 @@ input[type="radio"]:checked + label{
     filter: url("../images/icons/beer.png");
     -webkit-filter: brightness(110%) saturate(1.5) drop-shadow(0px 0px 5px rgb(0, 27, 150));
     filter: brightness(110%) saturate(1.5) drop-shadow(0px 0px 5px rgb(0, 27, 150));
+}
+
+.player-marker{
+    position: absolute;
 }

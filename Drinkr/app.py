@@ -12,11 +12,11 @@ DATABASE = 'rooms.db'
 from text import *
 from utilities import MAX_ATTEMPTS, random_room_key, isNoneOrEmptyOrSpace, random_roll, generate_tile_sequence, Tiles
 from procedures import room_u, room_f, room_d, room_f_tile_seq, \
-        player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, player_f_room, player_u_seq, \
-        playerDetails_u, playerDetails_f, playerDetails_f_by_room, \
+        player_u, player_f_by_room, player_d_by_room, player_f_sequence_by_room, player_d, player_move, player_f_room, player_u_seq, player_u_icon, player_f, player_u_path, \
         turn_u, turn_f, turn_iter, \
         tile_f, tile_f_by_id, tile_f_by_set, \
-        board_f
+        board_f, board_u, \
+        connection_f, connection_u
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -46,7 +46,9 @@ def background_thread():
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
+    return render_template('enter.html', 
+            async_mode=socketio.async_mode,
+            title=TITLE)
 
 
 @app.route('/join', methods=['GET'])
@@ -63,6 +65,7 @@ def game():
         return render_template('game.html', 
             async_mode=socketio.async_mode, 
             title=TITLE)
+
 
 
 # DATABASE
@@ -202,10 +205,12 @@ def send_player_details(message):
     player_id = message['id']
     player_icon = message['icon']
 
-    query_db(playerDetails_u(player_id, player_icon, 0, 'U'))
-    everyone_pd = query_db(playerDetails_f_by_room(room_key))
+    print(player_icon)
 
-    emit('receive_player_details_confirmation', {'everyone_personal_data': everyone_pd}, room=room_key)
+    query_db(player_u_icon(player_id, player_icon))
+    players = query_db(player_f_by_room(room_key))
+
+    emit('receive_player_data', {'players': players}, room=room_key)
 
 
 
@@ -221,17 +226,15 @@ def request_game_data(message):
     players = query_db(player_f_by_room(room_key))
     turn = query_db(turn_f(room_key), one=True)
     tile_mapping = query_db(room_f_tile_seq(room_key))
-    personal_data = query_db(playerDetails_f(player_id))
-    everyone_pd = query_db(playerDetails_f_by_room(room_key))
+    tile_connections = query_db(connection_f())
 
     emit('receive_game_data', {'room_key': room_key,
                                'players': players, 
                                'roll': turn, 
                                'tile_mapping': tile_mapping,
                                'tile_data': tile_data,
-                               'board_data': board_data, 
-                               'personal_data': personal_data,
-                               'everyone_personal_data': everyone_pd}, room=room_key)
+                               'board_data': board_data,
+                               'connection_data': tile_connections}, room=room_key)
 
 
 @socketio.event
@@ -245,10 +248,11 @@ def request_roll_data(message):
     # Move the player by the roll amount + update the turn
     query_db(turn_iter(room_key, rolling_id, roll))
     query_db(player_move(rolling_id, roll))
+    player = query_db(player_f(rolling_id), one=True)
 
     # Return new information about the turn
     turn = query_db(turn_f(room_key), one=True)
-    emit('receive_roll_data', {'roll': turn}, room=room_key)
+    emit('receive_roll_data', {'roll': turn, 'rollingPlayer': player}, room=room_key)
 
 
 @socketio.event

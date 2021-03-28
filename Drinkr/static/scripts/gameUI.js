@@ -1,29 +1,27 @@
 
-var tileWidth = 100;
-var tileHeight = 80;
+var tileWidth = 120;
+var tileHeight = 85;
 
 function updateGameData(msg) {
     $('#room_key').text(msg['room_key']);
     updatePlayersList(msg['players']);
+    showPlayerMarkers();
     updateRollData(msg['roll'], true);
 }
 
 function updatePlayersList(playerList) {
     $('#PlayerList').empty();
     
-    console.log(playerList);
     playerList.forEach(element => {
-        addPlayer(element['id'], element['username'], element['is_host'], false, element['id'] == sessionStorage['drinkr_id']);
+        addPlayer(element['id'], element['username'], element['icon'], element['is_host'], false, element['id'] == sessionStorage['drinkr_id']);
     });
+
+    showPlayerMarkers();
 }
 
-function addPlayer(id, username, isHost, isActive, isSelf) {
+function addPlayer(id, username, icon, isHost, isActive, isSelf) {
     canKick = isSelfHost();
-    $('#PlayerList').append(generatePlayer("player_" + id, username, isHost, isActive, isSelf, canKick));
-}
-
-function kickPlayer(data) {
-    console.log(kickPlayer);
+    $('#PlayerList').append(generatePlayer("player_" + id, username, icon, isHost, isActive, isSelf, canKick));
 }
 
 function updateRollData(turn, isInnit = false) {
@@ -42,7 +40,6 @@ function updateRollData(turn, isInnit = false) {
         }
 
         showRoll(username, rollValue);
-        showPlayerPositions();
     }
     showRollForm(current, isInnit ? 0 : 1000);
 }
@@ -60,8 +57,33 @@ function showRoll(roller, val) {
     $('#last-roll-value').text(val);
 }
 
-function showPlayerPositions() {
+function showPlayerMarkers() {
+    $("#playerMarkers").empty();
 
+    Object.keys(players).forEach(function(key) {
+        playerMarker = generatePlayerMarker("playerMarker_" + players[key].id, players[key].username, players[key].icon);
+        pos = getTilePosition(players[key].current_tile);
+        $("#playerMarkers").append(playerMarker);
+    });
+
+    positionPlayerMarkers();
+}
+
+function positionPlayerMarkers() {
+
+    Object.keys(players).forEach(function(key) {
+        playerPos = getTilePosition(players[key].current_tile);
+        playerTop = Math.floor(playerPos[0] + (tileHeight / 2));
+        playerLeft = Math.floor(playerPos[1] + (tileWidth / 2));
+
+        $("#playerMarker_" + players[key].id).css("top", playerTop + "px");
+        $("#playerMarker_" + players[key].id).css("left", playerLeft + "px");
+    });
+}
+
+function moveRollingPlayer(player) {
+    players[player.id].current_tile = player.current_tile;
+    positionPlayerMarkers();
 }
 
 function showRollForm(player, delay = 1000) {
@@ -80,10 +102,10 @@ function showRollForm(player, delay = 1000) {
     }
 }
 
-function togglePersonalDetailsForm(personalData) {
-    is_initial = personalData.length == 0;
+function togglePersonalDetailsForm() {
+    isInitial = players[sessionStorage['drinkr_id']]['icon'] == "";
 
-    if (is_initial) {
+    if (isInitial) {
         $('#personalDetailsPopup').removeClass("hidden");
         $('#rollDicePopup').addClass("hidden");
     } else {
@@ -92,22 +114,26 @@ function togglePersonalDetailsForm(personalData) {
     }
 }
 
-
-function updateBoardData(tileMapping, boardData, tileData) {
+function drawBoard() {
     $("#tiles").empty();
-    
-    map = parseTileMapping(tileMapping);
+
+    tileTops = getTileTops();
+    tileWidth = $("#GameBoard").width() / (getMaxX() + 3);
+    tileHeight = $("#GameBoard").height() / (getMaxY() + 1);
+
     boardData.forEach(function (element) {
-        tile_id = map[element.sequence];
+        tile_id = mapData[element.id];
         tile = tileData.find(x => x.id == tile_id);
 
-        tileLeft = (tileWidth * (element.pos_x + 1)) + "px";
-        tileTop = (tileHeight * (element.pos_y + 1)) + "px";
+        tileLeft = (tileWidth * (element.pos_x + 1));
+        tileTop = (tileHeight * tileTops[element.pos_y]);
 
-        addTile({id:"tile_" + element.sequence, name:tile.name, left:tileLeft, top:tileTop, width:tileWidth + "px", height:tileHeight + "px"})
+        addTile({id:"tile_" + element.id, name:tile.name, left:tileLeft, top:tileTop, width:tileWidth, height:tileHeight, params:element.parameters})
     });
+
+    positionPlayerMarkers();
 }
 
 function addTile(tile) {
-    $("#tiles").append(generateTile(tile.id, tile.name, tile.left, tile.top, tile.width, tile.height));
+    $("#tiles").append(generateTile(tile.id, tile.name, tile.left, tile.top, tile.width, tile.height, tile.params));
 }

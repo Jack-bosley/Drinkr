@@ -2,7 +2,7 @@
 from datetime import datetime
 
 def room_u(room_name, password, tile_sequence):
-    return f"INSERT INTO rooms (id,dateModified,password,tile_sequence) VALUES ('{str(room_name)}', '{str(datetime.today())}', '{str(password)}', '{tile_sequence}');"
+    return f"INSERT INTO rooms (id,dateModified,password,tile_sequence) VALUES ('{room_name}', '{datetime.today()}', '{password}', '{tile_sequence}');"
 
 def room_f(room_name):
     return f"SELECT * FROM rooms WHERE id = '{room_name}';"
@@ -15,8 +15,11 @@ def room_f_tile_seq(room_name):
 
 
 
-def player_u(id, room_name, username, is_host, sequence):
-    return f"INSERT INTO players (id,room_id,username,is_host,sequence, current_tile) VALUES ('{id}','{room_name}','{username}',{1 if is_host else 0},'{sequence}', {0});"
+def player_u(id, room_name, username, is_host, sequence, icon=''):
+    return f"INSERT INTO players (id,room_id,username,is_host,sequence, current_tile, icon, path) VALUES ('{id}','{room_name}','{username}',{1 if is_host else 0},{sequence}, {0}, '{icon}', {-1});"
+
+def player_f(id):
+    return f"SELECT * FROM players WHERE id = '{id}';"
 
 def player_move(id, amount):
     return f"UPDATE players SET current_tile = current_tile + {amount} WHERE id = '{id}';"
@@ -39,16 +42,12 @@ def player_f_room(id):
 def player_u_seq(id, new_sequence):
     return f"UPDATE players SET sequence = {new_sequence} WHERE id = '{id}';"
 
+def player_u_icon(id, icon):
+    return f"UPDATE players SET icon = '{icon}' WHERE id = '{id}';"
 
+def player_u_path(id, path):
+    return f"UPDATE players SET path = {path} WHERE id = '{id}';"
 
-def playerDetails_u(id, icon, age, gender):
-    return f"INSERT INTO playerDetails (id,icon,age,gender) VALUES ('{id}', '{icon}', '{age}', '{gender}')"
-
-def playerDetails_f(id):
-    return f"SELECT * FROM playerDetails WHERE id = '{id}';"
-
-def playerDetails_f_by_room(room_name):
-    return f"SELECT pd.id, pd.icon, pd.age, pd.gender FROM players p JOIN playerDetails pd ON pd.id == p.id WHERE p.room_id = '{room_name}';"
 
 
 
@@ -67,12 +66,23 @@ def tile_f():
     return f"SELECT * FROM tiles;"
 
 def tile_f_by_id(id):
-    return f"SELECT * FROM tiles WHERE id = '{id}';"
+    return f"SELECT * FROM tiles WHERE id = {id};"
 
 def tile_f_by_set(tile_set):
-    return f"SELECT * FROM tiles WHERE tile_set = '{tile_set}'"
+    return f"SELECT * FROM tiles WHERE tile_set = {tile_set}"
 
 
 
 def board_f():
     return f"SELECT * FROM board;"
+
+def board_u(id, pos_x, pos_y, tile_set, path, parameters = ""):
+    return f"INSERT INTO board (id, pos_x, pos_y, tile_set, path, parameters) VALUES ({id}, {pos_x}, {pos_y}, {tile_set}, {path}, '{parameters}');"
+
+
+
+def connection_f():
+    return f"SELECT * FROM connection"
+
+def connection_u(id, start, end, connection_type):
+    return f"INSERT INTO connection (id, start, end, connection_type) VALUES ({id}, {start}, {end}, {connection_type});"

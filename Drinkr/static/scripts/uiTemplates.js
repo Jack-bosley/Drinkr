@@ -1,22 +1,33 @@
 
-function generateTile(id, name, left, top, width, height) {
+function generateTile(id, name, left, top, width, height, params) {
+    doubleHeight = params.includes('dh,');
+    if (doubleHeight) {
+        height = height * 2;
+    }
+
     tile = $(document.getElementById('tileTemplate').content.cloneNode(true)).contents();
     tile.attr("id", id);
 
-    tile.css("left", left);
-    tile.css("top", top);
-    tile.css("width", width);
-    tile.css("height", height);
+    tile.css("left", left + "px");
+    tile.css("top", top + "px");
+    tile.css("width", width + "px");
+    tile.css("height", height + "px");
     tile.find("#tileName").text(name);
+    tile.find("#tileName").css("height", "100%");
 
+    if (doubleHeight) {
+        tile.find("#tileName").addClass("tileVerticalCenter");
+        tile.css("border-radius", "100% 0% 0% 100%");
+    }
     return tile;
 }
 
-function generatePlayer(id, name, isHost, isActive, isSelf, canKick) {
+function generatePlayer(id, name, icon, isHost, isActive, isSelf, canKick) {
+
     player = $(document.getElementById('playerListTemplate').content.cloneNode(true)).contents();
     player.attr("id", id);
 
-    player.append(name);
+    player.find("#playerName").append(name);
 
 
     if (isActive)
@@ -27,7 +38,7 @@ function generatePlayer(id, name, isHost, isActive, isSelf, canKick) {
     if (isHost) 
     {
         player.addClass('player player-host');
-        player.append("<img class='host-icon'> </img>");
+        player.find("#playerName").append("<img class='host-icon'> </img>");
     }
 
     if (isSelf)
@@ -36,11 +47,23 @@ function generatePlayer(id, name, isHost, isActive, isSelf, canKick) {
     }
 
 
+    player.find('.player-icon').attr('src', '../static/images/icons/' + icon + ".png");
+
     if (canKick && !isSelf) {
-        player.find("#kickIcon").attr("onClick", 'kickRequest("' + id + '")');
+        player.find(".kick-icon").attr("onClick", 'kickRequest("' + id + '")');
     } else {
-        player.find("#kickIcon").remove();
+        player.find(".kick-icon").remove();
     }
 
     return player;
+}
+
+function generatePlayerMarker(id, name, icon) {
+    player = $(document.getElementById('playerMarkerTemplate').content.cloneNode(true)).contents();
+    player.attr("id", id);
+
+    player.find('.player-icon').attr('src', '../static/images/icons/' + icon + ".png");
+
+    return player;
+
 }

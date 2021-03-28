@@ -1,6 +1,10 @@
 
 var socket;
 var players = {};
+var boardData = {};
+var mapData = {};
+var tileData = {};
+var connectionData = {};
 
 $(document).ready(function() {
     // Connect to the Socket.IO server.
@@ -13,27 +17,58 @@ $(document).ready(function() {
     
     // When somebody joins / leaves
     socket.on('receive_game_data', function(msg, cb) {
+        console.log('receive_game_data');
+        console.log(msg);
+
+        if (msg['players'] != null) 
+        {
+            players = {};
+            msg['players'].forEach(player => {
+                players[player.id] = player;
+            });
+        }
+        if (msg['board_data'] != null)
+        {
+            boardData = msg['board_data'];
+            mapData = parseTileMapping(msg['tile_mapping'][0].tile_sequence);
+            tileData = msg['tile_data'];
+            connectionData = msg['connection_data'];
+        }
+
+
+        if (sessionStorage['drinkr_id'] in players) {
+            if (msg['board_data'] != null)
+            {
+                drawBoard();
+            }
+            
+            updateGameData(msg);
+            togglePersonalDetailsForm();
+
+        } else {
+            window.location = msg['redirect'];
+        }
+    });
+
+    socket.on('receive_player_data', function(msg, cb){
+        console.log('receive_player_data');
+        console.log(msg);
+
         players = {};
         msg['players'].forEach(player => {
             players[player.id] = player;
         });
 
-        console.log(players);
-
-        if (sessionStorage['drinkr_id'] in players) {
-            updateGameData(msg);
-            togglePersonalDetailsForm(msg['personal_data']);
-
-            if (msg['board_data'] != null)
-                updateBoardData(msg['tile_mapping'][0].tile_sequence, msg['board_data'], msg['tile_data']);
-        } else {
-            window.location = msg['redirect'];
-        }
+        updatePlayersList(msg['players']);
     });
     
     // When somebody has rolled
     socket.on('receive_roll_data', function(msg, cb) {
+        console.log('receive_roll_data');
+        console.log(msg);
+
         updateRollData(msg['roll']);
+        moveRollingPlayer(msg['rollingPlayer']);
     });
 
 
@@ -77,6 +112,9 @@ $(document).ready(function() {
     console.log("START");
 });
 
+
+window.onresize = drawBoard;
+
 function kickRequest(data) {
     socket.emit('leave', {
         'room_key': sessionStorage['room_key'],
@@ -88,5 +126,6 @@ function selectIcon(icon) {
     $(".icon-select").removeClass("selected-icon");
     $(icon).addClass("selected-icon");
 
+    console.log("SELECTED" + $(icon).attr('alt'));
     players[sessionStorage['drinkr_id']]['icon'] = $(icon).attr('alt');
 }

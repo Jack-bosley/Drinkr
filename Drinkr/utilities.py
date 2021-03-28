@@ -7,12 +7,28 @@ class Tiles:
     START = 0
     END = 1
     JAIL = 2
+    SAFE = 3
 
     COMMON = 10
     HAPPY = 11
     CONFESSIONAL = 12
     FUCKED = 13
+    COMMON_END = 14
 
+class ConnectionTypes:
+    STEP = 0
+    JUMP = 1
+
+class TileParameters:
+    DOUBLEHEIGHT = "dh,"
+
+class PathIds:
+    INTRO = 0
+    OUTRO = 1
+
+    HAPPY = 11
+    CONFESSIONAL = 12
+    FUCKED = 13
 
 def random_room_key():
     return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
@@ -43,6 +59,6 @@ def generate_tile_sequence(tiles, board):
     tile_sequence = ""
     for b in board:
         random_tile = select_random_tile(tiles, b['tile_set'])
-        tile_sequence += f"{b['sequence']}:{random_tile['id']}|"
+        tile_sequence += f"{b['id']}:{random_tile['id']}|"
 
     return tile_sequence
